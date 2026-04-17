@@ -2,8 +2,15 @@
 name = "apiwp-evolution"
 version = "0.1.0"
 requires-python = ">=3.11"
+dependencies = [
+    "fastapi==0.115.12",
+    "uvicorn[standard]==0.34.0",
+    "httpx==0.28.1",
+    "python-dotenv==1.1.0",
+    "pydantic-settings==2.8.1",
+]
 
-# Vercel resuelve la app FastAPI con nombre `app` en este módulo:
+# Vercel busca FastAPI así:
 # https://vercel.com/docs/frameworks/backend/fastapi
 [project.scripts]
 app = "app.main:app"
