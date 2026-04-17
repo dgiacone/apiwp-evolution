@@ -1,0 +1,280 @@
+:root {
+  color-scheme: dark;
+  --bg: #0c0f14;
+  --card: #141a22;
+  --border: #243042;
+  --text: #e8eef7;
+  --muted: #8b98a8;
+  --accent: #3b82f6;
+  --danger: #ef4444;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem clamp(1rem, 3vw, 2rem);
+  border-bottom: 1px solid var(--border);
+}
+
+h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+}
+
+h2 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+
+.muted {
+  color: var(--muted);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.muted.small {
+  font-size: 0.8rem;
+  margin-bottom: 0.75rem;
+}
+
+code {
+  font-size: 0.85em;
+  background: #0b1018;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.pill {
+  align-self: center;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem clamp(1rem, 3vw, 2rem) 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.card.wide {
+  grid-column: 1 / -1;
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+input,
+textarea,
+button {
+  width: 100%;
+  font: inherit;
+}
+
+input,
+textarea {
+  background: #0b1018;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  color: var(--text);
+  margin-bottom: 0.85rem;
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button.secondary {
+  background: #1f2937;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+button.danger {
+  background: var(--danger);
+}
+
+button.danger.secondary {
+  background: #2a1212;
+  color: #fecaca;
+  border-color: #7f1d1d;
+}
+
+.row.tight {
+  flex-wrap: nowrap;
+  margin-bottom: 0;
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.row.tight button {
+  flex: 0 0 auto;
+}
+
+label.inline {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.inbox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 280px;
+  overflow: auto;
+}
+
+.inbox-item {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  background: #0b1018;
+  font-size: 0.88rem;
+}
+
+.inbox-item .meta {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin-bottom: 0.35rem;
+}
+
+.inbox-item .body {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.inbox-item.hit .keys {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+  word-break: break-all;
+}
+
+.inbox-item.hit .hint {
+  font-size: 0.8rem;
+  color: #fbbf24;
+  margin-top: 0.25rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.row button {
+  flex: 1 1 120px;
+  width: auto;
+}
+
+.qr-wrap {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.qr-wrap img {
+  max-width: min(320px, 100%);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.hidden {
+  display: none;
+}
+
+.headline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.headline h2 {
+  margin: 0;
+}
+
+.instances {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #0b1018;
+  font-size: 0.9rem;
+}
+
+.chip button {
+  width: auto;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+.log {
+  min-height: 160px;
+  max-height: 360px;
+  overflow: auto;
+  background: #0b1018;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.85rem;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

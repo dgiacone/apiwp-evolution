@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BotWP — Evolution API</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1>BotWP</h1>
+      <p class="muted">Pruebas contra Evolution API (QR, estado, envío de texto)</p>
+    </div>
+    <a class="pill" href="/docs" target="_blank" rel="noreferrer">OpenAPI</a>
+  </header>
+
+  <main class="grid">
+    <section class="card">
+      <h2>Instancia</h2>
+      <label for="instance">Nombre de instancia</label>
+      <input id="instance" type="text" placeholder="ej: mi-bot" autocomplete="off" />
+
+      <div class="row">
+        <button id="btn-create" type="button">Crear + QR</button>
+        <button id="btn-qr" type="button" class="secondary">Solo QR</button>
+        <button id="btn-state" type="button" class="secondary">Estado</button>
+      </div>
+      <div class="row">
+        <button id="btn-logout" type="button" class="danger secondary">Logout</button>
+        <button id="btn-delete" type="button" class="danger">Borrar instancia</button>
+      </div>
+
+      <div id="qr-wrap" class="qr-wrap hidden">
+        <p class="muted">Escaneá con WhatsApp → Dispositivos vinculados</p>
+        <img id="qr-img" alt="Código QR" />
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Webhook (Evolution → tu URL)</h2>
+      <p class="muted small">
+        Evolution hace POST a esta URL con eventos. Coincidí con <code>WEBHOOK_PUBLIC_URL</code> en <code>.env</code>.
+      </p>
+      <label for="webhook-url">URL del webhook</label>
+      <input id="webhook-url" type="url" placeholder="http://35.195.28.12:8080/webhook/evolution" autocomplete="off" />
+      <div class="row">
+        <button id="btn-webhook-get" type="button" class="secondary">Leer en Evolution</button>
+        <button id="btn-webhook-set" type="button">Guardar en Evolution</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Enviar mensaje</h2>
+      <label for="number">Número o JID</label>
+      <input id="number" type="text" placeholder="5491123456789 o 549...@s.whatsapp.net" />
+      <label for="text">Texto</label>
+      <textarea id="text" rows="4" placeholder="Hola…"></textarea>
+      <button id="btn-send" type="button">Enviar</button>
+    </section>
+
+    <section class="card wide">
+      <div class="headline">
+        <h2>Mensajes entrantes (respuestas)</h2>
+        <div class="row tight">
+          <label class="inline"><input id="inbox-auto" type="checkbox" checked /> Auto</label>
+          <button id="btn-inbox-refresh" type="button" class="secondary">Actualizar</button>
+          <button id="btn-inbox-clear" type="button" class="danger secondary">Vaciar</button>
+        </div>
+      </div>
+      <p class="muted small">
+        Evolution debe hacer <strong>POST</strong> a <code>/webhook/evolution</code> de <strong>este</strong> servidor
+        (evento <code>MESSAGES_UPSERT</code>). Si el webhook apunta solo al puerto 8080 de Evolution, estos datos no llegan acá.
+      </p>
+      <div id="inbox" class="inbox"></div>
+    </section>
+
+    <section class="card wide">
+      <div class="headline">
+        <h2>Instancias en el servidor</h2>
+        <button id="btn-refresh" type="button" class="secondary">Actualizar</button>
+      </div>
+      <div id="instances" class="instances"></div>
+    </section>
+
+    <section class="card wide">
+      <h2>Respuesta / registro</h2>
+      <pre id="log" class="log"></pre>
+    </section>
+  </main>
+
+  <script src="/static/app.js" type="module"></script>
+</body>
+</html>
