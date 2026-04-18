@@ -242,8 +242,14 @@ function renderInbox(data) {
         <div class="meta">
           ${formatTs(m.ts)} · instancia <strong>${escapeHtml(m.instance || "?")}</strong>
           · ${escapeHtml(m.from_jid || "")}
+          ${m.wa_message_type ? ` · tipo <code>${escapeHtml(m.wa_message_type)}</code>` : ""}
           ${m.is_reply_to_prior ? " · ↩︎ respuesta" : ""}
         </div>
+        ${
+          m.message_tags && m.message_tags.length
+            ? `<div class="msg-tags">${escapeHtml(m.message_tags.join(" · "))}</div>`
+            : ""
+        }
         <div class="body">${escapeHtml(m.text || "")}</div>
       </div>`
       )

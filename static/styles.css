@@ -189,6 +189,13 @@ label.inline {
   word-break: break-word;
 }
 
+.inbox-item .msg-tags {
+  font-size: 0.78rem;
+  color: #93c5fd;
+  margin: 0.25rem 0 0.35rem;
+  word-break: break-word;
+}
+
 .inbox-item.hit .keys {
   font-size: 0.75rem;
   color: var(--muted);
