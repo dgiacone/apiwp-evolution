@@ -204,6 +204,14 @@ function formatTs(ts) {
   return Number.isNaN(d.getTime()) ? String(ts) : d.toLocaleString();
 }
 
+function phoneFromJid(jid) {
+  const raw = String(jid || "").trim();
+  if (!raw) return "";
+  const local = raw.split("@")[0] || "";
+  const digits = local.replace(/\D/g, "");
+  return digits || local;
+}
+
 function renderInbox(data) {
   const root = $("inbox");
   const items = data?.items || [];
@@ -237,11 +245,14 @@ function renderInbox(data) {
   } else {
     html += items
       .map(
-        (m) => `
+        (m) => {
+          const phone = phoneFromJid(m.from_jid || "");
+          return `
       <div class="inbox-item">
         <div class="meta">
           ${formatTs(m.ts)} · instancia <strong>${escapeHtml(m.instance || "?")}</strong>
           · ${escapeHtml(m.from_jid || "")}
+          ${phone ? ` · tel <strong>${escapeHtml(phone)}</strong>` : ""}
           ${m.wa_message_type ? ` · tipo <code>${escapeHtml(m.wa_message_type)}</code>` : ""}
           ${m.is_reply_to_prior ? " · ↩︎ respuesta" : ""}
         </div>
@@ -262,6 +273,7 @@ function renderInbox(data) {
           </button>
         </div>
       </div>`
+        }
       )
       .join("");
   }
@@ -303,13 +315,15 @@ $("inbox").addEventListener("click", (event) => {
   const jid = (btn.dataset.replyJid || "").trim();
   const instance = (btn.dataset.replyInstance || "").trim();
   if (!jid) return;
+  const phone = phoneFromJid(jid);
 
-  $("number").value = jid;
+  // Prioriza teléfono plano para evitar JIDs no enviables (ej: @lid).
+  $("number").value = phone || jid;
   if (instance) {
     $("instance").value = instance;
   }
   $("text").focus();
-  log(`Listo para responder a ${jid}${instance ? ` usando instancia ${instance}` : ""}`);
+  log(`Listo para responder a ${phone || jid}${instance ? ` usando instancia ${instance}` : ""}`);
 });
 
 $("btn-inbox-clear").addEventListener("click", async () => {

@@ -101,6 +101,12 @@ class EvolutionClient:
 def _to_whatsapp_jid(number: str) -> str:
     n = number.strip()
     if "@" in n:
+        local, _, domain = n.partition("@")
+        digits = "".join(c for c in local if c.isdigit())
+        dom = domain.lower()
+        # Evolution suele rechazar @lid para sendText; convertir a JID estándar.
+        if dom == "lid" and digits:
+            return f"{digits}@s.whatsapp.net"
         return n
     digits = "".join(c for c in n if c.isdigit())
     return f"{digits}@s.whatsapp.net"
