@@ -69,6 +69,24 @@ def _instance_exists(payload: Any, target_name: str) -> bool:
     return any(_extract_instance_name(row).lower() == target for row in rows)
 
 
+def _stringify_lower(value: Any) -> str:
+    if isinstance(value, str):
+        return value.lower()
+    if isinstance(value, dict):
+        parts = [f"{k}:{_stringify_lower(v)}" for k, v in value.items()]
+        return " ".join(parts).lower()
+    if isinstance(value, list):
+        return " ".join(_stringify_lower(v) for v in value).lower()
+    return str(value).lower()
+
+
+def _state_is_connected(payload: Any) -> bool:
+    s = _stringify_lower(payload)
+    connected_tokens = ("open", "connected", "online")
+    disconnected_tokens = ("close", "closed", "disconnected", "offline", "connecting")
+    return any(tok in s for tok in connected_tokens) and not any(tok in s for tok in disconnected_tokens)
+
+
 async def _ensure_auto_session_instance_impl() -> bool:
     settings = get_settings()
     phone = settings.auto_session_phone.strip()
@@ -87,6 +105,20 @@ async def _ensure_auto_session_instance_impl() -> bool:
         instances = await client.fetch_instances()
         if _instance_exists(instances, instance_name):
             logger.info("Sesión automática ya existe en Evolution: %s", instance_name)
+            try:
+                state = await client.connection_state(instance_name)
+                if _state_is_connected(state):
+                    logger.info("Instancia automática ya está conectada: %s", instance_name)
+                    return True
+                await client.connect(instance_name)
+                logger.info("Instancia automática conectada al iniciar: %s", instance_name)
+            except EvolutionAPIError as exc:
+                logger.warning(
+                    "No se pudo verificar/conectar instancia existente %s: %s",
+                    instance_name,
+                    exc.detail,
+                )
+                return False
             return True
         await client.create_instance(instance_name, qrcode=True)
         logger.info(
@@ -94,6 +126,15 @@ async def _ensure_auto_session_instance_impl() -> bool:
             phone,
             instance_name,
         )
+        try:
+            await client.connect(instance_name)
+            logger.info("Instancia automática conectada luego de crearla: %s", instance_name)
+        except EvolutionAPIError as exc:
+            logger.warning(
+                "La instancia se creó pero no se pudo conectar automáticamente (%s): %s",
+                instance_name,
+                exc.detail,
+            )
         return True
     except EvolutionAPIError as exc:
         # Algunas versiones de Evolution devuelven 409 si la instancia ya existe.

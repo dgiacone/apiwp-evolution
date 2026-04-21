@@ -251,6 +251,16 @@ function renderInbox(data) {
             : ""
         }
         <div class="body">${escapeHtml(m.text || "")}</div>
+        <div class="actions">
+          <button
+            type="button"
+            class="secondary btn-reply"
+            data-reply-jid="${escapeHtml(m.from_jid || "")}"
+            data-reply-instance="${escapeHtml(m.instance || "")}"
+          >
+            Responder
+          </button>
+        </div>
       </div>`
       )
       .join("");
@@ -284,6 +294,23 @@ async function refreshInbox() {
 }
 
 $("btn-inbox-refresh").addEventListener("click", refreshInbox);
+
+$("inbox").addEventListener("click", (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  const btn = target.closest("button[data-reply-jid]");
+  if (!(btn instanceof HTMLButtonElement)) return;
+  const jid = (btn.dataset.replyJid || "").trim();
+  const instance = (btn.dataset.replyInstance || "").trim();
+  if (!jid) return;
+
+  $("number").value = jid;
+  if (instance) {
+    $("instance").value = instance;
+  }
+  $("text").focus();
+  log(`Listo para responder a ${jid}${instance ? ` usando instancia ${instance}` : ""}`);
+});
 
 $("btn-inbox-clear").addEventListener("click", async () => {
   if (!confirm("¿Vaciar el buzón de prueba en memoria?")) return;

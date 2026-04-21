@@ -189,6 +189,18 @@ label.inline {
   word-break: break-word;
 }
 
+.inbox-item .actions {
+  margin-top: 0.55rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.inbox-item .actions .btn-reply {
+  width: auto;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+}
+
 .inbox-item .msg-tags {
   font-size: 0.78rem;
   color: #93c5fd;
