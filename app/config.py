@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     evolution_base_url: str = "http://127.0.0.1:8080"
     evolution_api_key: str = ""
     webhook_public_url: str = ""
+    auto_session_phone: str = ""
+    auto_session_instance_name: str = ""
 
 
 @lru_cache

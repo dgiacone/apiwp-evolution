@@ -26,6 +26,83 @@ app = FastAPI(title="BotWP Admin", version="0.1.0")
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
 
+def _digits_only(value: str) -> str:
+    return "".join(ch for ch in value if ch.isdigit())
+
+
+def _instance_name_from_phone(phone: str) -> str:
+    digits = _digits_only(phone)
+    if not digits:
+        return "session-auto-default"
+    return f"session-auto-{digits}"
+
+
+def _extract_instance_name(item: Any) -> str:
+    if not isinstance(item, dict):
+        return ""
+    for key in ("name", "instanceName", "instance", "instance_name"):
+        value = item.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return ""
+
+
+def _instance_exists(payload: Any, target_name: str) -> bool:
+    target = target_name.strip().lower()
+    if not target:
+        return False
+    rows: list[Any] = []
+    if isinstance(payload, list):
+        rows = payload
+    elif isinstance(payload, dict):
+        for key in ("instances", "data", "result"):
+            value = payload.get(key)
+            if isinstance(value, list):
+                rows = value
+                break
+    return any(_extract_instance_name(row).lower() == target for row in rows)
+
+
+@app.on_event("startup")
+async def ensure_auto_session_instance() -> None:
+    settings = get_settings()
+    phone = settings.auto_session_phone.strip()
+    if not phone:
+        return
+    if not settings.evolution_api_key:
+        logger.warning(
+            "AUTO_SESSION_PHONE está definido pero falta EVOLUTION_API_KEY; se omite bootstrap de sesión",
+        )
+        return
+
+    instance_name = settings.auto_session_instance_name.strip() or _instance_name_from_phone(phone)
+    client = EvolutionClient(settings)
+
+    try:
+        instances = await client.fetch_instances()
+        if _instance_exists(instances, instance_name):
+            logger.info("Sesión automática ya existe en Evolution: %s", instance_name)
+            return
+        await client.create_instance(instance_name, qrcode=True)
+        logger.info(
+            "Sesión automática creada en Evolution para %s (instancia: %s)",
+            phone,
+            instance_name,
+        )
+    except EvolutionAPIError as exc:
+        # Algunas versiones de Evolution devuelven 409 si la instancia ya existe.
+        if exc.status_code == 409:
+            logger.info("Sesión automática ya existente (409): %s", instance_name)
+            return
+        logger.warning(
+            "No se pudo crear la sesión automática para %s: %s",
+            phone,
+            exc.detail,
+        )
+    except Exception:
+        logger.exception("Fallo inesperado al crear sesión automática para %s", phone)
+
+
 @app.exception_handler(EvolutionAPIError)
 async def evolution_api_error_handler(_request: Request, exc: EvolutionAPIError) -> JSONResponse:
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
