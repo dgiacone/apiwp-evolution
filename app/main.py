@@ -1,5 +1,7 @@
 import json
 import logging
+import time
+import asyncio
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +26,10 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="BotWP Admin", version="0.1.0")
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+_AUTO_SESSION_RETRY_SECONDS = 120
+_auto_session_ready = False
+_auto_session_last_attempt = 0.0
+_auto_session_lock = asyncio.Lock()
 
 
 def _digits_only(value: str) -> str:
@@ -63,17 +69,16 @@ def _instance_exists(payload: Any, target_name: str) -> bool:
     return any(_extract_instance_name(row).lower() == target for row in rows)
 
 
-@app.on_event("startup")
-async def ensure_auto_session_instance() -> None:
+async def _ensure_auto_session_instance_impl() -> bool:
     settings = get_settings()
     phone = settings.auto_session_phone.strip()
     if not phone:
-        return
+        return False
     if not settings.evolution_api_key:
         logger.warning(
             "AUTO_SESSION_PHONE está definido pero falta EVOLUTION_API_KEY; se omite bootstrap de sesión",
         )
-        return
+        return False
 
     instance_name = settings.auto_session_instance_name.strip() or _instance_name_from_phone(phone)
     client = EvolutionClient(settings)
@@ -82,25 +87,69 @@ async def ensure_auto_session_instance() -> None:
         instances = await client.fetch_instances()
         if _instance_exists(instances, instance_name):
             logger.info("Sesión automática ya existe en Evolution: %s", instance_name)
-            return
+            return True
         await client.create_instance(instance_name, qrcode=True)
         logger.info(
             "Sesión automática creada en Evolution para %s (instancia: %s)",
             phone,
             instance_name,
         )
+        return True
     except EvolutionAPIError as exc:
         # Algunas versiones de Evolution devuelven 409 si la instancia ya existe.
         if exc.status_code == 409:
             logger.info("Sesión automática ya existente (409): %s", instance_name)
-            return
+            return True
         logger.warning(
             "No se pudo crear la sesión automática para %s: %s",
             phone,
             exc.detail,
         )
+        return False
     except Exception:
         logger.exception("Fallo inesperado al crear sesión automática para %s", phone)
+        return False
+
+
+async def maybe_ensure_auto_session_instance(*, force: bool = False) -> None:
+    global _auto_session_ready, _auto_session_last_attempt
+    settings = get_settings()
+    if not settings.auto_session_phone.strip():
+        return
+    if _auto_session_ready and not force:
+        return
+
+    now = time.time()
+    if (
+        not force
+        and _auto_session_last_attempt > 0
+        and (now - _auto_session_last_attempt) < _AUTO_SESSION_RETRY_SECONDS
+    ):
+        return
+
+    async with _auto_session_lock:
+        if _auto_session_ready and not force:
+            return
+        now2 = time.time()
+        if (
+            not force
+            and _auto_session_last_attempt > 0
+            and (now2 - _auto_session_last_attempt) < _AUTO_SESSION_RETRY_SECONDS
+        ):
+            return
+        _auto_session_last_attempt = now2
+        _auto_session_ready = await _ensure_auto_session_instance_impl()
+
+
+@app.on_event("startup")
+async def ensure_auto_session_instance() -> None:
+    await maybe_ensure_auto_session_instance(force=True)
+
+
+@app.middleware("http")
+async def auto_session_bootstrap_middleware(request: Request, call_next):
+    await maybe_ensure_auto_session_instance()
+    return await call_next(request)
 
 
 @app.exception_handler(EvolutionAPIError)
